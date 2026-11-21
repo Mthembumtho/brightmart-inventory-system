@@ -1,0 +1,5 @@
+{% set ep = request.endpoint %}
+<div class="actions no-print" style="margin-bottom:1rem">
+  <a class="btn small {{ '' if ep == 'reports.sales_report' else 'secondary' }}" href="{{ url_for('reports.sales_report') }}">Sales report</a>
+  <a class="btn small {{ '' if ep == 'reports.inventory_report' else 'secondary' }}" href="{{ url_for('reports.inventory_report') }}">Inventory report</a>
+</div>

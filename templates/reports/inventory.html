@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Inventory Report{% endblock %}
+{% block content %}
+{% include "reports/_tabs.html" %}
+<div class="page-head">
+  <h1>Inventory report</h1>
+  <div class="actions no-print">
+    <a class="btn secondary" href="{{ url_for('reports.inventory_report', export='csv') }}">Export CSV</a>
+    <button type="button" class="btn secondary" onclick="window.print()">Print</button>
+  </div>
+</div>
+<div class="row">
+  <div class="card"><div class="stat-label">Total stock value (at cost)</div><div class="stat">{{ report.total_value | money }}</div></div>
+  <div class="card"><div class="stat-label">Active products</div><div class="stat">{{ report.product_count }}</div></div>
+  <div class="card"><div class="stat-label">Low-stock items</div><div class="stat">{{ report.low_count }}</div></div>
+</div>
+<div class="table-wrap">
+<table>
+  <tr><th>Product</th><th>Category</th><th class="num">In stock</th><th class="num">Reorder</th><th class="num">Cost price</th><th class="num">Stock value</th><th>Supplier</th></tr>
+  {% for r in report.rows %}
+  <tr class="{{ 'low' if r.is_low }}">
+    <td>{{ r.product_name }} {% if r.is_low %}<span class="badge low">Low</span>{% endif %}</td>
+    <td>{{ r.category or '' }}</td><td class="num">{{ r.qty_in_stock }}</td><td class="num">{{ r.reorder_level }}</td>
+    <td class="num">{{ r.cost_price | money }}</td><td class="num">{{ r.stock_value | money }}</td><td>{{ r.supplier_name or '-' }}</td>
+  </tr>
+  {% endfor %}
+  <tr><th colspan="5">Total</th><th class="num">{{ report.total_value | money }}</th><th></th></tr>
+</table>
+</div>
+{% endblock %}

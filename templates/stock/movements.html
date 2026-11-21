@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Stock Movement Log{% endblock %}
+{% block content %}
+{% include "stock/_tabs.html" %}
+<h1>Stock movement log</h1>
+<p class="muted small">Every stock increase and decrease, with who did it, when and why (FR-12). Entries can never be edited or deleted.</p>
+<form class="card inline" method="get">
+  <div class="field" style="flex:2"><label for="product_id">Product</label>
+    <select id="product_id" name="product_id"><option value="">All products</option>
+      {% for p in products %}<option value="{{ p.product_id }}" {{ 'selected' if product_id == p.product_id|string }}>{{ p.product_name }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><label for="type">Type</label>
+    <select id="type" name="type"><option value="">All types</option>
+      {% for t in ['SALE', 'GRN', 'ADJUSTMENT'] %}<option {{ 'selected' if movement_type == t }}>{{ t }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><button class="btn">Filter</button> <a class="btn secondary" href="{{ url_for('stock.movements') }}">Clear</a></div>
+</form>
+<div class="table-wrap">
+<table>
+  <tr><th>Date and time</th><th>Product</th><th>Type</th><th class="num">Change</th><th>Reference / reason</th><th>User</th></tr>
+  {% for m in movements %}
+  <tr>
+    <td>{{ m.movement_datetime }}</td><td>{{ m.product_name }}</td><td>{{ m.movement_type }}</td>
+    <td class="num" style="color:{{ 'var(--ok)' if m.qty_change > 0 else 'var(--danger)' }}">{{ '%+d' % m.qty_change }}</td>
+    <td>{% if m.receipt_no %}<a href="{{ url_for('sales.sale_detail', sale_id=m.sale_id) }}">{{ m.receipt_no }}</a>
+        {% elif m.grn_number %}{% if can('record_grn') %}<a href="{{ url_for('stock.grn_detail', grn_id=m.grn_id) }}">{{ m.grn_number }}</a>{% else %}{{ m.grn_number }}{% endif %}
+        {% else %}{{ m.reason }}{% endif %}</td>
+    <td>{{ m.username }}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="muted">No movements found.</td></tr>
+  {% endfor %}
+</table>
+</div>
+<p class="muted small">Showing the latest {{ movements | length }} movement(s).</p>
+{% endblock %}

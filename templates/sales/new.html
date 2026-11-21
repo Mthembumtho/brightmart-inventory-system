@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Record Sale{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Record Sale</h1>
+  <span class="muted small">Keyboard: <span class="key">F2</span>product <span class="key">F3</span>quantity <span class="key">F4</span>add line
+    <span class="key">F6</span>cash/card <span class="key">F7</span>tendered <span class="key">F9</span>complete <span class="key">Esc</span>cancel</span>
+</div>
+
+<div id="message"></div>
+
+<div class="sale-grid">
+  <!-- Left: choose products (5.3.1 add_line_to_cart) -->
+  <div class="card">
+    <div class="field">
+      <label for="product-search"><span class="key">F2</span>Product</label>
+      <input id="product-search" placeholder="Type a product name, then use the arrow keys and Enter" autocomplete="off" autofocus>
+      <div id="search-results" class="search-results" hidden></div>
+    </div>
+    <div id="chosen" class="chosen" hidden></div>
+    <div class="inline">
+      <div class="field" style="max-width:160px">
+        <label for="quantity"><span class="key">F3</span>Quantity</label>
+        <input id="quantity" type="number" min="1" step="1" value="1">
+      </div>
+      <div class="field">
+        <button id="add-line" class="btn" type="button" disabled><span class="key">F4</span>Add line</button>
+      </div>
+    </div>
+    <p id="qty-warning" class="warning-text" hidden></p>
+  </div>
+
+  <!-- Right: the cart and payment (5.3.2 record_sale) -->
+  <div class="card">
+    <h2>Lines</h2>
+    <table id="cart">
+      <thead><tr><th>Qty</th><th>Product</th><th class="num">Price</th><th class="num">Total</th><th></th></tr></thead>
+      <tbody><tr><td colspan="5" class="muted">No items yet.</td></tr></tbody>
+    </table>
+    <div class="total-line">TOTAL: <span id="total">R 0.00</span></div>
+
+    <div class="field payment-options" style="margin-top:1rem">
+      <span class="key">F6</span><strong>Payment:</strong>
+      <label><input type="radio" name="payment" value="CASH" checked> Cash</label>
+      <label><input type="radio" name="payment" value="CARD"> Card</label>
+    </div>
+    <div class="inline" id="cash-fields">
+      <div class="field" style="max-width:200px">
+        <label for="tendered"><span class="key">F7</span>Tendered (R)</label>
+        <input id="tendered" type="number" min="0" step="0.01">
+      </div>
+      <div class="field"><label>Change due</label><div class="stat" id="change">R 0.00</div></div>
+    </div>
+    <div class="actions" style="margin-top:1rem">
+      <button id="complete" class="btn" type="button" disabled><span class="key">F9</span>Complete sale</button>
+      <button id="cancel" class="btn secondary" type="button"><span class="key">Esc</span>Cancel</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // URLs are built by Flask so the JavaScript never has to guess them
+  const URLS = {
+    search: "{{ url_for('products.api_products') }}",
+    validate: "{{ url_for('sales.validate_line') }}",
+    complete: "{{ url_for('sales.complete_sale') }}",
+    receipt: "{{ url_for('sales.sale_detail', sale_id=0) }}".replace(/0$/, ""),
+    login: "{{ url_for('auth.login') }}"
+  };
+</script>
+<script src="{{ url_for('static', filename='sale.js') }}"></script>
+{% endblock %}

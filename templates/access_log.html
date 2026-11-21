@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Access Log{% endblock %}
+{% block content %}
+<h1>Access log</h1>
+<p class="muted small">Every login, logout, idle timeout and refused access attempt (FR-04, NFR-05).</p>
+<div class="table-wrap">
+<table>
+  <tr><th>Date and time</th><th>User</th><th>Event</th><th>Detail</th></tr>
+  {% for e in entries %}
+  <tr><td>{{ e.event_datetime }}</td><td>{{ e.username }}</td>
+      <td>{% if e.event_type == 'ACCESS_DENIED' %}<span class="badge no">ACCESS DENIED</span>{% else %}{{ e.event_type }}{% endif %}</td>
+      <td>{{ e.event_detail or '' }}</td></tr>
+  {% else %}
+  <tr><td colspan="4" class="muted">No entries yet.</td></tr>
+  {% endfor %}
+</table>
+</div>
+<p class="muted small">Showing the latest {{ entries | length }} entries.</p>
+{% endblock %}

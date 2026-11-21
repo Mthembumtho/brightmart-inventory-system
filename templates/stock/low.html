@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Low-Stock Alerts{% endblock %}
+{% block content %}
+{% if can('record_grn') or can('view_movements') %}{% include "stock/_tabs.html" %}{% endif %}
+<div class="page-head">
+  <h1>Low-stock alerts ({{ items | length }})</h1>
+  {% if can('raise_po') and items %}<a class="btn" href="{{ url_for('stock.new_po') }}">Raise purchase order</a>{% endif %}
+</div>
+<p class="muted small">Products at or below their reorder level, biggest shortfall first (FR-11).</p>
+<div class="table-wrap">
+<table>
+  <tr><th>Product</th><th class="num">In stock</th><th class="num">Reorder level</th><th class="num">Shortfall</th>
+      {% if can('view_suppliers') %}<th>Supplier</th><th>Phone</th>{% endif %}</tr>
+  {% for i in items %}
+  <tr class="low">
+    <td>{{ i.product_name }}</td><td class="num">{{ i.qty_in_stock }}</td><td class="num">{{ i.reorder_level }}</td>
+    <td class="num">{{ i.shortfall }}</td>
+    {% if can('view_suppliers') %}<td>{{ i.supplier_name or '-' }}</td><td>{{ i.supplier_phone or '' }}</td>{% endif %}
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="muted">Nothing is low on stock.</td></tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Users</h1>
+  <a class="btn" href="{{ url_for('users.new_user') }}">+ New User</a>
+</div>
+<div class="table-wrap">
+<table>
+  <tr><th>Username</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+  {% for u in users %}
+  <tr class="{{ 'inactive' if not u.is_active }}">
+    <td>{{ u.username }}{% if u.user_id == g.user.user_id %} <span class="muted small">(you)</span>{% endif %}</td>
+    <td>{{ ROLE_LABELS[u.role] }}</td>
+    <td>{% if u.is_active %}<span class="badge yes">Active</span>{% else %}<span class="badge no">Inactive</span>{% endif %}</td>
+    <td class="actions">
+      <a class="btn small secondary" href="{{ url_for('users.edit_user', user_id=u.user_id) }}">Edit</a>
+      {% if u.user_id != g.user.user_id %}
+      <form class="inline-form" method="post" action="{{ url_for('users.toggle_user', user_id=u.user_id) }}">
+        <button class="btn small {{ 'danger' if u.is_active else 'secondary' }}">{{ 'Deactivate' if u.is_active else 'Re-activate' }}</button>
+      </form>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+</div>
+<p class="muted small">Users are deactivated rather than deleted, so their past sales and log entries stay linked to them.</p>
+{% endblock %}

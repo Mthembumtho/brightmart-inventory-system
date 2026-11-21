@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Purchase Orders{% endblock %}
+{% block content %}
+{% include "stock/_tabs.html" %}
+<div class="page-head">
+  <h1>Purchase orders</h1>
+  {% if can('raise_po') %}<a class="btn" href="{{ url_for('stock.new_po') }}">+ Raise purchase order</a>{% endif %}
+</div>
+<div class="table-wrap">
+<table>
+  <tr><th>PO no.</th><th>Order date</th><th>Supplier</th><th>Raised by</th><th>Status</th><th></th></tr>
+  {% for po in pos %}
+  <tr>
+    <td>PO-{{ '%05d' % po.po_id }}</td><td>{{ po.order_date }}</td><td>{{ po.supplier_name }}</td><td>{{ po.created_by_name }}</td>
+    <td><span class="badge {{ po.status | lower }}">{{ po.status | replace('_', ' ') | title }}</span></td>
+    <td class="actions"><a href="{{ url_for('stock.po_detail', po_id=po.po_id) }}">View</a>
+      {% if can('record_grn') and po.status != 'CLOSED' %} | <a href="{{ url_for('stock.new_grn', po_id=po.po_id) }}">Receive</a>{% endif %}</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6" class="muted">No purchase orders yet.</td></tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}

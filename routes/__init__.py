@@ -1,0 +1,1 @@
+"""Routes (screens). Each file is a Flask "blueprint": a group of related pages."""

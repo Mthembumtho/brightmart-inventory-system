@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Raise Purchase Order{% endblock %}
+{% block content %}
+{% include "stock/_tabs.html" %}
+<h1>Raise purchase order</h1>
+<form class="card" method="post">
+  <div class="field" style="max-width:420px"><label for="supplier_id">Supplier *</label>
+    <select id="supplier_id" name="supplier_id" required>
+      <option value="">Choose a supplier</option>
+      {% for s in suppliers %}<option value="{{ s.supplier_id }}">{{ s.supplier_name }}</option>{% endfor %}
+    </select></div>
+  <table id="lines">
+    <thead><tr><th>Product</th><th style="width:160px">Qty to order</th><th style="width:50px"></th></tr></thead>
+    <tbody></tbody>
+    <tfoot><tr><td colspan="3"><button type="button" class="btn small secondary" id="add-row">+ Add line</button></td></tr></tfoot>
+  </table>
+  <div class="actions" style="margin-top:1rem">
+    <button class="btn" type="submit">Save purchase order</button>
+    <a class="btn secondary" href="{{ url_for('stock.list_pos') }}">Cancel</a>
+  </div>
+</form>
+<template id="row-template">
+  <tr>
+    <td><select name="product_id" required><option value="">Choose a product</option>
+      {% for p in products %}<option value="{{ p.product_id }}" data-supplier="{{ p.supplier_id or '' }}">{{ p.product_name }} (in stock: {{ p.qty_in_stock }}, reorder at {{ p.reorder_level }})</option>{% endfor %}
+    </select></td>
+    <td><input name="qty_ordered" type="number" min="1" step="1" required></td>
+    <td><button type="button" class="btn small secondary remove">✕</button></td>
+  </tr>
+</template>
+{% endblock %}
+{% block scripts %}
+<script>
+const tbody = document.querySelector("#lines tbody");
+function addRow() {
+  tbody.appendChild(document.getElementById("row-template").content.firstElementChild.cloneNode(true));
+}
+document.getElementById("add-row").addEventListener("click", addRow);
+tbody.addEventListener("click", (e) => { if (e.target.classList.contains("remove")) e.target.closest("tr").remove(); });
+addRow();
+</script>
+{% endblock %}

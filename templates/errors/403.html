@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Not allowed{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Not allowed</h1>
+  <p>Your role does not have permission to open this page. This attempt has been recorded in the access log.</p>
+  <a class="btn" href="{{ url_for('main.dashboard') }}">Back to the dashboard</a>
+</div>
+{% endblock %}

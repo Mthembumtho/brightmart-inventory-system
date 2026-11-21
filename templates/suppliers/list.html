@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Suppliers{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Suppliers</h1>
+  {% if can('manage_suppliers') %}<a class="btn" href="{{ url_for('products.new_supplier') }}">+ New Supplier</a>{% endif %}
+</div>
+<p class="muted small">Supplier contact details are personal information under POPIA, so only the Store Manager and Business Owner can see this page (NFR-05).</p>
+<div class="table-wrap">
+<table>
+  <tr><th>Supplier</th><th>Contact person</th><th>Phone</th><th>Email</th><th>Address</th><th>Status</th>
+      {% if can('manage_suppliers') %}<th>Actions</th>{% endif %}</tr>
+  {% for s in suppliers %}
+  <tr class="{{ 'inactive' if not s.is_active }}">
+    <td>{{ s.supplier_name }}</td><td>{{ s.contact_person or '' }}</td><td>{{ s.phone or '' }}</td>
+    <td>{{ s.email or '' }}</td><td>{{ s.address or '' }}</td>
+    <td>{% if s.is_active %}<span class="badge yes">Active</span>{% else %}<span class="badge no">Inactive</span>{% endif %}</td>
+    {% if can('manage_suppliers') %}
+    <td class="actions">
+      <a class="btn small secondary" href="{{ url_for('products.edit_supplier', supplier_id=s.supplier_id) }}">Edit</a>
+      <form class="inline-form" method="post" action="{{ url_for('products.toggle_supplier', supplier_id=s.supplier_id) }}">
+        <button class="btn small {{ 'danger' if s.is_active else 'secondary' }}">{{ 'Deactivate' if s.is_active else 'Re-activate' }}</button>
+      </form>
+    </td>
+    {% endif %}
+  </tr>
+  {% else %}
+  <tr><td colspan="7" class="muted">No suppliers yet.</td></tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}

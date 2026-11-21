@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<div class="row">
+  <div class="card"><div class="stat-label">Today's sales</div><div class="stat">{{ today.total_sales | money }}</div></div>
+  <div class="card"><div class="stat-label">Items sold today</div><div class="stat">{{ today.items_sold }}</div></div>
+  <div class="card"><div class="stat-label">Transactions today</div><div class="stat">{{ today.transactions }}</div></div>
+</div>
+
+<div class="card">
+  <div class="page-head">
+    <h2 style="margin:0">Low-stock alerts ({{ low_count }})</h2>
+    <a href="{{ url_for('stock.low_stock') }}">View all</a>
+  </div>
+  {% if low_stock %}
+  <div class="table-wrap">
+  <table>
+    <tr><th>Product</th><th class="num">In stock</th><th class="num">Reorder level</th>
+        {% if can('view_suppliers') %}<th>Supplier</th><th>Phone</th>{% endif %}</tr>
+    {% for item in low_stock %}
+    <tr class="low">
+      <td>{{ item.product_name }}</td>
+      <td class="num">{{ item.qty_in_stock }}</td>
+      <td class="num">{{ item.reorder_level }}</td>
+      {% if can('view_suppliers') %}<td>{{ item.supplier_name or '-' }}</td><td>{{ item.supplier_phone or '' }}</td>{% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+  {% else %}
+    <p class="muted">No products are at or below their reorder level.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Quick actions</h2>
+  <div class="actions">
+    {% if can('record_sale') %}<a class="btn" href="{{ url_for('sales.new_sale') }}">Record Sale</a>{% endif %}
+    {% if can('record_grn') %}<a class="btn" href="{{ url_for('stock.new_grn') }}">Record GRN</a>{% endif %}
+    {% if can('adjust_stock') %}<a class="btn" href="{{ url_for('stock.adjust') }}">Adjust Stock</a>{% endif %}
+    {% if can('view_reports') %}<a class="btn secondary" href="{{ url_for('reports.sales_report') }}">Reports</a>{% endif %}
+    <a class="btn secondary" href="{{ url_for('products.list_products') }}">Find a product</a>
+  </div>
+</div>
+{% endblock %}

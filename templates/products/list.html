@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Products</h1>
+  {% if can('manage_products') %}<a class="btn" href="{{ url_for('products.new_product') }}">+ New Product</a>{% endif %}
+</div>
+
+{# FR-17: search and filter. method="get" puts the filters in the address bar. #}
+<form class="card inline" method="get">
+  <div class="field" style="flex:2"><label for="q">Search</label>
+    <input id="q" name="q" value="{{ q }}" placeholder="Name, category or description"></div>
+  <div class="field"><label for="category">Category</label>
+    <select id="category" name="category">
+      <option value="">All</option>
+      {% for c in categories %}<option {{ 'selected' if c == category }}>{{ c }}</option>{% endfor %}
+    </select></div>
+  <div class="field"><label><input type="checkbox" name="low" value="1" style="width:auto" {{ 'checked' if low_only }}> Low stock only</label>
+    {% if can('manage_products') %}<label><input type="checkbox" name="inactive" value="1" style="width:auto" {{ 'checked' if show_inactive }}> Show inactive</label>{% endif %}</div>
+  <div class="field"><button class="btn" type="submit">Search</button>
+    <a class="btn secondary" href="{{ url_for('products.list_products') }}">Clear</a></div>
+</form>
+
+<div class="table-wrap">
+<table>
+  <tr>
+    <th>Product</th><th>Category</th><th class="num">Unit price</th>
+    {% if can('view_cost_prices') %}<th class="num">Cost price</th>{% endif %}
+    <th class="num">In stock</th><th class="num">Reorder</th>
+    {% if can('view_suppliers') %}<th>Supplier</th>{% endif %}
+    <th>Status</th>
+    {% if can('manage_products') %}<th>Actions</th>{% endif %}
+  </tr>
+  {% for p in products %}
+  <tr class="{{ 'inactive' if not p.is_active else ('low' if p.is_low_stock()) }}">
+    <td>{{ p.product_name }}</td>
+    <td>{{ p.category or '' }}</td>
+    <td class="num">{{ p.unit_price | money }}</td>
+    {% if can('view_cost_prices') %}<td class="num">{{ p.cost_price | money }}</td>{% endif %}
+    <td class="num">{{ p.qty_in_stock }}</td>
+    <td class="num">{{ p.reorder_level }}</td>
+    {% if can('view_suppliers') %}<td>{{ p.supplier_name or '-' }}</td>{% endif %}
+    <td>
+      {% if not p.is_active %}<span class="badge no">Inactive</span>
+      {% elif p.is_low_stock() %}<span class="badge low">Low stock</span>
+      {% else %}<span class="badge yes">Active</span>{% endif %}
+    </td>
+    {% if can('manage_products') %}
+    <td class="actions">
+      <a class="btn small secondary" href="{{ url_for('products.edit_product', product_id=p.product_id) }}">Edit</a>
+      {# No Delete button on purpose: products are deactivated so past sales stay valid (NFR-08) #}
+      <form class="inline-form" method="post" action="{{ url_for('products.toggle_product', product_id=p.product_id) }}">
+        <button class="btn small {{ 'danger' if p.is_active else 'secondary' }}" type="submit">{{ 'Deactivate' if p.is_active else 'Re-activate' }}</button>
+      </form>
+      {% if can('adjust_stock') and p.is_active %}<a class="btn small secondary" href="{{ url_for('stock.adjust', product_id=p.product_id) }}">Adjust</a>{% endif %}
+    </td>
+    {% endif %}
+  </tr>
+  {% else %}
+  <tr><td colspan="9" class="muted">No products match your search.</td></tr>
+  {% endfor %}
+</table>
+</div>
+<p class="muted small">{{ products | length }} product(s) shown.</p>
+{% endblock %}

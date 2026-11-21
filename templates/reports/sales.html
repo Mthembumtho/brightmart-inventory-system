@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Sales Report{% endblock %}
+{% block content %}
+{% include "reports/_tabs.html" %}
+<div class="page-head">
+  <h1>Sales report</h1>
+  {% if report %}<a class="btn secondary no-print" href="{{ url_for('reports.sales_report', **{'from': date_from, 'to': date_to, 'export': 'csv'}) }}">Export CSV</a>{% endif %}
+</div>
+<form class="card inline no-print" method="get">
+  <div class="field"><label for="from">From</label><input id="from" type="date" name="from" value="{{ date_from }}"></div>
+  <div class="field"><label for="to">To</label><input id="to" type="date" name="to" value="{{ date_to }}"></div>
+  <div class="field"><button class="btn">Run report</button> <button type="button" class="btn secondary" onclick="window.print()">Print</button></div>
+</form>
+
+{% if report %}
+<p class="muted">Period: {{ date_from }} to {{ date_to }}</p>
+<div class="row">
+  <div class="card"><div class="stat-label">Total sales</div><div class="stat">{{ report.summary.total_sales | money }}</div></div>
+  <div class="card"><div class="stat-label">Transactions</div><div class="stat">{{ report.summary.transactions }}</div></div>
+  <div class="card"><div class="stat-label">Items sold</div><div class="stat">{{ report.items_sold }}</div></div>
+  <div class="card"><div class="stat-label">Average sale</div><div class="stat">{{ report.summary.average_sale | money }}</div></div>
+</div>
+<p class="muted small">Cash: {{ report.summary.cash_total | money }} &nbsp; Card: {{ report.summary.card_total | money }}</p>
+
+<div class="row">
+  <div class="card" style="flex:3">
+    <h2>Best-selling products</h2>
+    <table>
+      <tr><th>#</th><th>Product</th><th class="num">Qty sold</th><th class="num">Revenue</th></tr>
+      {% for b in report.best_sellers %}
+      <tr><td>{{ loop.index }}</td><td>{{ b.product_name }}</td><td class="num">{{ b.qty_sold }}</td><td class="num">{{ b.revenue | money }}</td></tr>
+      {% else %}
+      <tr><td colspan="4" class="muted">No sales in this period.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="card" style="flex:2">
+    <h2>Sales per day</h2>
+    <table>
+      <tr><th>Day</th><th class="num">Transactions</th><th class="num">Total</th></tr>
+      {% for d in report.daily %}
+      <tr><td>{{ d.day }}</td><td class="num">{{ d.transactions }}</td><td class="num">{{ d.total_sales | money }}</td></tr>
+      {% else %}
+      <tr><td colspan="3" class="muted">No sales in this period.</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

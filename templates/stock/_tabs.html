@@ -1,0 +1,17 @@
+{# Small menu shared by all stock pages. "include" pastes this file into another template. #}
+{% set ep = request.endpoint %}
+<div class="actions" style="margin-bottom:1rem">
+  {% if can('record_grn') %}
+    <a class="btn small {{ '' if ep in ('stock.list_grns','stock.new_grn','stock.grn_detail') else 'secondary' }}" href="{{ url_for('stock.list_grns') }}">Goods received (GRN)</a>
+  {% endif %}
+  {% if can('adjust_stock') %}
+    <a class="btn small {{ '' if ep == 'stock.adjust' else 'secondary' }}" href="{{ url_for('stock.adjust') }}">Stock adjustment</a>
+  {% endif %}
+  {% if can('view_po') %}
+    <a class="btn small {{ '' if ep in ('stock.list_pos','stock.new_po','stock.po_detail') else 'secondary' }}" href="{{ url_for('stock.list_pos') }}">Purchase orders</a>
+  {% endif %}
+  {% if can('view_movements') %}
+    <a class="btn small {{ '' if ep == 'stock.movements' else 'secondary' }}" href="{{ url_for('stock.movements') }}">Movement log</a>
+  {% endif %}
+  <a class="btn small {{ '' if ep == 'stock.low_stock' else 'secondary' }}" href="{{ url_for('stock.low_stock') }}">Low stock</a>
+</div>

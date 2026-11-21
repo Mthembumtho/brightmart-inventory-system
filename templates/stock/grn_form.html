@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Record GRN{% endblock %}
+{% block content %}
+{% include "stock/_tabs.html" %}
+<h1>Record goods received (GRN)</h1>
+<form class="card" method="post" id="grn-form">
+  <div class="row">
+    <div class="field"><label for="supplier_id">Supplier *</label>
+      <select id="supplier_id" name="supplier_id" required>
+        <option value="">Choose a supplier</option>
+        {% for s in suppliers %}<option value="{{ s.supplier_id }}" {{ 'selected' if request.form.supplier_id == s.supplier_id|string }}>{{ s.supplier_name }}</option>{% endfor %}
+      </select></div>
+    <div class="field"><label for="delivery_note_no">Delivery note no. *</label>
+      <input id="delivery_note_no" name="delivery_note_no" value="{{ request.form.delivery_note_no or '' }}" placeholder="e.g. DN-2026-118" required maxlength="50"></div>
+    <div class="field"><label for="received_date">Date received *</label>
+      <input id="received_date" name="received_date" type="date" max="{{ today }}" value="{{ request.form.received_date or today }}" required></div>
+  </div>
+  <div class="field" style="max-width:420px">
+    <label for="po_id">Purchase order (optional)</label>
+    <select id="po_id" name="po_id">
+      <option value="">(none) - delivery without a purchase order</option>
+      {% for po in open_pos %}
+        <option value="{{ po.po_id }}" data-supplier="{{ po.supplier_id }}" {{ 'selected' if selected_po == po.po_id|string }}>
+          PO-{{ '%05d' % po.po_id }} - {{ po.supplier_name }} ({{ po.status | replace('_', ' ') | lower }})</option>
+      {% endfor %}
+    </select>
+    <p class="muted small">Choosing a purchase order fills in the items still outstanding on it.</p>
+  </div>
+
+  <table id="lines">
+    <thead><tr><th>Product</th><th style="width:130px">Qty received</th><th style="width:150px">Unit cost (R)</th><th class="num" style="width:130px">Line total</th><th style="width:50px"></th></tr></thead>
+    <tbody></tbody>
+    <tfoot><tr><td><button type="button" class="btn small secondary" id="add-row">+ Add line</button></td><th colspan="2" class="num">Total</th><th class="num" id="grand-total">R 0.00</th><td></td></tr></tfoot>
+  </table>
+
+  <p class="muted" style="margin-top:1rem">Note: saving will increase stock levels.</p>
+  <div class="actions">
+    <button class="btn" type="submit">Save GRN</button>
+    <a class="btn secondary" href="{{ url_for('stock.list_grns') }}">Cancel</a>
+  </div>
+</form>
+
+{# A hidden copy of one row. JavaScript clones it each time "+ Add line" is pressed. #}
+<template id="row-template">
+  <tr>
+    <td><select name="product_id" required>
+      <option value="">Choose a product</option>
+      {% for p in products %}<option value="{{ p.product_id }}" data-cost="{{ p.cost_price }}">{{ p.product_name }}</option>{% endfor %}
+    </select></td>
+    <td><input name="qty_received" type="number" min="1" step="1" required></td>
+    <td><input name="unit_cost" type="number" min="0" step="0.01" required></td>
+    <td class="num line-total">R 0.00</td>
+    <td><button type="button" class="btn small secondary remove" title="Remove line">✕</button></td>
+  </tr>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const tbody = document.querySelector("#lines tbody");
+const money = (n) => "R " + Number(n).toFixed(2);
+
+// Lines the user typed before an error (empty on a fresh form) - so nothing has to be retyped
+const postedLines = {{ posted_lines | tojson }};
+
+function addRow(productId, qty, cost) {
+  const row = document.getElementById("row-template").content.firstElementChild.cloneNode(true);
+  tbody.appendChild(row);
+  if (productId) {
+    row.querySelector("[name=product_id]").value = productId;
+    fillCost(row);
+  }
+  if (qty) row.querySelector("[name=qty_received]").value = qty;
+  if (cost !== undefined && cost !== "") row.querySelector("[name=unit_cost]").value = cost;
+  updateTotals();
+  return row;
+}
+
+function fillCost(row) {
+  const option = row.querySelector("[name=product_id]").selectedOptions[0];
+  if (option && option.dataset.cost) row.querySelector("[name=unit_cost]").value = option.dataset.cost;
+}
+
+function updateTotals() {
+  let total = 0;
+  tbody.querySelectorAll("tr").forEach((row) => {
+    const line = Number(row.querySelector("[name=qty_received]").value || 0) *
+                 Number(row.querySelector("[name=unit_cost]").value || 0);
+    row.querySelector(".line-total").textContent = money(line);
+    total += line;
+  });
+  document.getElementById("grand-total").textContent = money(total);
+}
+
+tbody.addEventListener("input", updateTotals);
+tbody.addEventListener("change", (e) => {
+  if (e.target.name === "product_id") { fillCost(e.target.closest("tr")); updateTotals(); }
+});
+tbody.addEventListener("click", (e) => {
+  if (e.target.classList.contains("remove")) { e.target.closest("tr").remove(); updateTotals(); }
+});
+document.getElementById("add-row").addEventListener("click", () => addRow());
+
+// Choosing a purchase order: set the supplier and fill in the outstanding lines
+const poSelect = document.getElementById("po_id");
+async function loadPo() {
+  const option = poSelect.selectedOptions[0];
+  if (!poSelect.value) return;
+  document.getElementById("supplier_id").value = option.dataset.supplier;
+  const response = await fetch("{{ url_for('stock.api_po', po_id=0) }}".replace(/0$/, "") + poSelect.value);
+  const data = await response.json();
+  if (!data.ok) return;
+  tbody.innerHTML = "";
+  data.lines.forEach((l) => addRow(l.product_id, l.outstanding));
+}
+poSelect.addEventListener("change", loadPo);
+
+if (postedLines.length) {
+  postedLines.forEach((l) => addRow(l.product_id, l.qty_received, l.unit_cost));   // after an error
+} else if (poSelect.value) {
+  loadPo();                                                                          // opened from a PO
+} else {
+  addRow();                                                                          // a fresh, empty form
+}
+</script>
+{% endblock %}

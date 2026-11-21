@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New' if is_new else 'Edit' }} Supplier{% endblock %}
+{% block content %}
+<h1>{{ 'New supplier' if is_new else 'Edit supplier' }}</h1>
+<form class="card" method="post" style="max-width:640px">
+  <div class="field"><label for="supplier_name">Supplier name *</label>
+    <input id="supplier_name" name="supplier_name" value="{{ supplier['supplier_name'] or '' }}" required maxlength="100"></div>
+  <div class="row">
+    <div class="field"><label for="contact_person">Contact person</label>
+      <input id="contact_person" name="contact_person" value="{{ supplier['contact_person'] or '' }}" maxlength="100"></div>
+    <div class="field"><label for="phone">Phone</label>
+      <input id="phone" name="phone" type="tel" value="{{ supplier['phone'] or '' }}" maxlength="20"></div>
+  </div>
+  <div class="field"><label for="email">Email</label>
+    <input id="email" name="email" type="email" value="{{ supplier['email'] or '' }}" maxlength="100"></div>
+  <div class="field"><label for="address">Address</label>
+    <input id="address" name="address" value="{{ supplier['address'] or '' }}" maxlength="200"></div>
+  <div class="actions">
+    <button class="btn" type="submit">Save</button>
+    <a class="btn secondary" href="{{ url_for('products.list_suppliers') }}">Cancel</a>[]
+  </div>
+</form>
+{% endblock %}

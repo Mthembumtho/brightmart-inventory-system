@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Stock Adjustment{% endblock %}
+{% block content %}
+{% include "stock/_tabs.html" %}
+<h1>Stock adjustment</h1>
+<form class="card" method="post" style="max-width:640px">
+  <div class="field"><label for="product_id">Product *</label>
+    <select id="product_id" name="product_id" required>
+      <option value="">Choose a product</option>
+      {% set chosen = form.product_id or selected %}
+      {% for p in products %}
+        <option value="{{ p.product_id }}" data-stock="{{ p.qty_in_stock }}" {{ 'selected' if chosen == p.product_id|string }}>{{ p.product_name }} (in stock: {{ p.qty_in_stock }})</option>
+      {% endfor %}
+    </select></div>
+  <div class="row">
+    <div class="field"><label for="direction">Adjustment *</label>
+      <select id="direction" name="direction">
+        <option value="DECREASE" {{ 'selected' if form.direction != 'INCREASE' }}>Decrease (damage, theft, recount)</option>
+        <option value="INCREASE" {{ 'selected' if form.direction == 'INCREASE' }}>Increase (found stock, recount)</option>
+      </select></div>
+    <div class="field"><label for="quantity">Quantity *</label>
+      <input id="quantity" name="quantity" type="number" min="1" step="1" value="{{ form.quantity or 1 }}" required></div>
+  </div>
+  <div class="field"><label for="reason">Reason * <span class="muted small">(required - kept in the movement log)</span></label>
+    <input id="reason" name="reason" value="{{ form.reason or '' }}" maxlength="200" placeholder="e.g. 3 bottles broken during unpacking"></div>
+  <p id="new-level" class="muted"></p>
+  <div class="actions">
+    {# The Save button stays disabled until a reason is typed (Figure 4.6.6, FR-09) #}
+    <button class="btn" type="submit" id="save" disabled>Save adjustment</button>
+    <a class="btn secondary" href="{{ url_for('products.list_products') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const reason = document.getElementById("reason");
+const save = document.getElementById("save");
+const product = document.getElementById("product_id");
+const direction = document.getElementById("direction");
+const quantity = document.getElementById("quantity");
+
+function refresh() {
+  save.disabled = reason.value.trim() === "" || !product.value;
+  const option = product.selectedOptions[0];
+  if (product.value && option) {
+    const stock = Number(option.dataset.stock);
+    const change = Number(quantity.value || 0) * (direction.value === "INCREASE" ? 1 : -1);
+    const after = stock + change;
+    document.getElementById("new-level").textContent = after < 0
+      ? `Only ${stock} in stock - you cannot remove ${quantity.value}.`
+      : `Stock will change from ${stock} to ${after}.`;
+    if (after < 0) save.disabled = true;
+  }
+}
+[reason, product, direction, quantity].forEach((el) => el.addEventListener("input", refresh));
+refresh();
+</script>
+{% endblock %}

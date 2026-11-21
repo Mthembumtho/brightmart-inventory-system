@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New' if is_new else 'Edit' }} User{% endblock %}
+{% block content %}
+<h1>{{ 'New user' if is_new else 'Edit user' }}</h1>
+<form class="card" method="post" style="max-width:480px" autocomplete="off">
+  <div class="field"><label for="username">Username *</label>
+    <input id="username" name="username" value="{{ user['username'] or '' }}" required maxlength="50"></div>
+  <div class="field"><label for="role">Role *</label>
+    <select id="role" name="role">
+      {% for code, label in ROLE_LABELS.items() %}
+        <option value="{{ code }}" {{ 'selected' if user['role'] == code or (not user['role'] and code == 'SALES') }}>{{ label }}</option>
+      {% endfor %}
+    </select></div>
+  <div class="field"><label for="password">{{ 'Password *' if is_new else 'New password (leave blank to keep the current one)' }}</label>
+    <input id="password" name="password" type="password" minlength="8" {{ 'required' if is_new }} autocomplete="new-password">
+    <p class="muted small">At least 8 characters.</p></div>
+  <div class="actions">
+    <button class="btn" type="submit">Save</button>
+    <a class="btn secondary" href="{{ url_for('users.list_users') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

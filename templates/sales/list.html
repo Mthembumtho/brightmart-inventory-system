@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Sales{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ 'My sales' if own_only else 'Sales history' }}</h1>
+  {% if can('record_sale') %}<a class="btn" href="{{ url_for('sales.new_sale') }}">Record Sale</a>{% endif %}
+</div>
+<form class="card inline" method="get">
+  <div class="field"><label for="from">From</label><input id="from" type="date" name="from" value="{{ date_from }}"></div>
+  <div class="field"><label for="to">To</label><input id="to" type="date" name="to" value="{{ date_to }}"></div>
+  <div class="field"><button class="btn">Filter</button> <a class="btn secondary" href="{{ url_for('sales.list_sales') }}">Clear</a></div>
+</form>
+<div class="table-wrap">
+<table>
+  <tr><th>Receipt</th><th>Date and time</th><th>Staff member</th><th class="num">Items</th><th>Payment</th><th class="num">Total</th><th></th></tr>
+  {% for s in sales %}
+  <tr>
+    <td>{{ s.receipt_no }}</td><td>{{ s.sale_datetime }}</td><td>{{ s.username }}</td>
+    <td class="num">{{ s.items }}</td><td>{{ s.payment_type | title }}</td>
+    <td class="num">{{ s.total_amount | money }}</td>
+    <td><a href="{{ url_for('sales.sale_detail', sale_id=s.sale_id) }}">View</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7" class="muted">No sales found.</td></tr>
+  {% endfor %}
+</table>
+</div>
+<p class="muted small">Showing the latest {{ sales | length }} sale(s).</p>
+{% endblock %}

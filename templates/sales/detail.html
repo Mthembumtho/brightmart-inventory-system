@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Receipt {{ sale.receipt_no }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;margin:auto">
+  <h2 style="text-align:center">BrightMart Traders</h2>
+  <p style="text-align:center" class="small">Receipt <strong>{{ sale.receipt_no }}</strong><br>{{ sale.sale_datetime }}<br>Served by {{ sale.username }}</p>
+  <table>
+    {% for l in lines %}
+    <tr><td>{{ l.quantity }} x {{ l.product_name }}<br><span class="muted small">@ {{ l.unit_price | money }}</span></td>
+        <td class="num">{{ l.line_total | money }}</td></tr>
+    {% endfor %}
+    <tr><th>TOTAL</th><th class="num">{{ sale.total_amount | money }}</th></tr>
+    <tr><td>Paid ({{ sale.payment_type | title }})</td><td class="num">{{ sale.amount_tendered | money }}</td></tr>
+    <tr><td>Change</td><td class="num">{{ sale.change_due | money }}</td></tr>
+  </table>
+  <p style="text-align:center" class="small">Thank you for shopping with us!</p>
+  <div class="actions no-print">
+    <button class="btn" onclick="window.print()">Print</button>
+    <a class="btn secondary" href="{{ url_for('sales.list_sales') }}">Back to sales</a>
+    {% if can('record_sale') %}<a class="btn secondary" href="{{ url_for('sales.new_sale') }}">New sale</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

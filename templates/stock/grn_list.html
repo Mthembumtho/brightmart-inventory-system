@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Goods Received{% endblock %}
+{% block content %}
+{% include "stock/_tabs.html" %}
+<div class="page-head">
+  <h1>Goods received notes</h1>
+  <a class="btn" href="{{ url_for('stock.new_grn') }}">+ Record GRN</a>
+</div>
+<div class="table-wrap">
+<table>
+  <tr><th>GRN no.</th><th>Date received</th><th>Supplier</th><th>Delivery note</th><th>Purchase order</th><th>Received by</th><th class="num">Value</th><th></th></tr>
+  {% for grn in grns %}
+  <tr>
+    <td>{{ grn.grn_number }}</td><td>{{ grn.received_date }}</td><td>{{ grn.supplier_name }}</td><td>{{ grn.delivery_note_no }}</td>
+    <td>{% if grn.po_id %}<a href="{{ url_for('stock.po_detail', po_id=grn.po_id) }}">PO-{{ '%05d' % grn.po_id }}</a>{% else %}<span class="muted">(none)</span>{% endif %}</td>
+    <td>{{ grn.received_by_name }}</td><td class="num">{{ grn.total_cost | money }}</td>
+    <td><a href="{{ url_for('stock.grn_detail', grn_id=grn.grn_id) }}">View</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="8" class="muted">No deliveries recorded yet.</td></tr>
+  {% endfor %}
+</table>
+</div>
+{% endblock %}

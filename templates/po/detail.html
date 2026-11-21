@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}PO-{{ '%05d' % po.po_id }}{% endblock %}
+{% block content %}
+{% include "stock/_tabs.html" %}
+<div class="page-head">
+  <h1>Purchase order PO-{{ '%05d' % po.po_id }}</h1>
+  {% if can('record_grn') and po.status != 'CLOSED' %}<a class="btn" href="{{ url_for('stock.new_grn', po_id=po.po_id) }}">Receive delivery against this PO</a>{% endif %}
+</div>
+<div class="card">
+  <p>Supplier: <strong>{{ po.supplier_name }}</strong> &nbsp; Ordered: <strong>{{ po.order_date }}</strong> by {{ po.created_by_name }}
+     &nbsp; Status: <span class="badge {{ po.status | lower }}">{{ po.status | replace('_', ' ') | title }}</span></p>
+  <table>
+    <tr><th>Product</th><th class="num">Ordered</th><th class="num">Received</th><th class="num">Outstanding</th></tr>
+    {% for l in lines %}
+    <tr><td>{{ l.product_name }}</td><td class="num">{{ l.qty_ordered }}</td><td class="num">{{ l.qty_received }}</td>
+        <td class="num">{{ l.qty_ordered - l.qty_received }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

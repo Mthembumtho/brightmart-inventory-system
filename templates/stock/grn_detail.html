@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ grn.grn_number }}{% endblock %}
+{% block content %}
+{% include "stock/_tabs.html" %}
+<h1>{{ grn.grn_number }}</h1>
+<div class="card">
+  <p>Supplier: <strong>{{ grn.supplier_name }}</strong> &nbsp; Delivery note: <strong>{{ grn.delivery_note_no }}</strong>
+     &nbsp; Received: <strong>{{ grn.received_date }}</strong> by {{ grn.received_by_name }}
+     {% if grn.po_id %} &nbsp; Against <a href="{{ url_for('stock.po_detail', po_id=grn.po_id) }}">PO-{{ '%05d' % grn.po_id }}</a>{% endif %}</p>
+  <table>
+    <tr><th>Product</th><th class="num">Qty received</th><th class="num">Unit cost</th><th class="num">Line total</th></tr>
+    {% set ns = namespace(total=0) %}
+    {% for l in lines %}
+      {% set ns.total = ns.total + l.qty_received * l.unit_cost %}
+      <tr><td>{{ l.product_name }}</td><td class="num">{{ l.qty_received }}</td><td class="num">{{ l.unit_cost | money }}</td>
+          <td class="num">{{ (l.qty_received * l.unit_cost) | money }}</td></tr>
+    {% endfor %}
+    <tr><th colspan="3">Total</th><th class="num">{{ ns.total | money }}</th></tr>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New' if is_new else 'Edit' }} Product{% endblock %}
+{% block content %}
+<h1>{{ 'New product' if is_new else 'Edit product' }}</h1>
+<form class="card" method="post" style="max-width:640px">
+  <div class="field"><label for="product_name">Product name *</label>
+    <input id="product_name" name="product_name" value="{{ product['product_name'] or '' }}" required maxlength="100"></div>
+  <div class="field"><label for="description">Description</label>
+    <input id="description" name="description" value="{{ product['description'] or '' }}" maxlength="200"></div>
+  <div class="row">
+    <div class="field"><label for="category">Category</label>
+      <input id="category" name="category" list="category-list" value="{{ product['category'] or '' }}" maxlength="50">
+      <datalist id="category-list">{% for c in categories %}<option value="{{ c }}">{% endfor %}</datalist></div>
+    <div class="field"><label for="supplier_id">Primary supplier</label>
+      <select id="supplier_id" name="supplier_id">
+        <option value="">(none)</option>
+        {% for s in suppliers %}
+          <option value="{{ s.supplier_id }}" {{ 'selected' if (product['supplier_id'] | string) == (s.supplier_id | string) }}>{{ s.supplier_name }}</option>
+        {% endfor %}
+      </select></div>
+  </div>
+  <div class="row">
+    <div class="field"><label for="unit_price">Selling price (R) *</label>
+      <input id="unit_price" name="unit_price" type="number" step="0.01" min="0" value="{{ product['unit_price'] or '' }}" required></div>
+    <div class="field"><label for="cost_price">Cost price (R)</label>
+      <input id="cost_price" name="cost_price" type="number" step="0.01" min="0" value="{{ product['cost_price'] or 0 }}"></div>
+    <div class="field"><label for="reorder_level">Reorder level *</label>
+      <input id="reorder_level" name="reorder_level" type="number" step="1" min="0" value="{{ product['reorder_level'] or 0 }}" required></div>
+  </div>
+  {% if not is_new %}
+    <p class="muted small">Stock on hand: <strong>{{ product['qty_in_stock'] }}</strong>. Stock can only change through a sale, a GRN or a stock adjustment, so every change is logged.</p>
+  {% else %}
+    <p class="muted small">New products start with 0 in stock. Record a GRN to add stock.</p>
+  {% endif %}
+  <div class="actions">
+    <button class="btn" type="submit">Save</button>
+    <a class="btn secondary" href="{{ url_for('products.list_products') }}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

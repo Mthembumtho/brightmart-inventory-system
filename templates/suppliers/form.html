@@ -17,7 +17,7 @@
     <input id="address" name="address" value="{{ supplier['address'] or '' }}" maxlength="200"></div>
   <div class="actions">
     <button class="btn" type="submit">Save</button>
-    <a class="btn secondary" href="{{ url_for('products.list_suppliers') }}">Cancel</a>[]
+    <a class="btn secondary" href="{{ url_for('products.list_suppliers') }}">Cancel</a>
   </div>
 </form>
 {% endblock %}
